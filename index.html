@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="ka">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090b0e">
+  <meta name="description" content="გაანაწილე 200 ქულა სპორტულობას, V8-სა და გამძლეობას შორის.">
+  <title>აირჩიე ორი</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 7 58 54H6Z' fill='%23090b0e' stroke='%23ff5a36' stroke-width='6' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='34' r='7' fill='%23ffd15c'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090b0e;
+      --surface: #12151a;
+      --surface-2: #181c22;
+      --line: #2b3039;
+      --text: #f6f7f8;
+      --muted: #979da8;
+      --sport: #ff5a36;
+      --v8: #ffd15c;
+      --durable: #42dfb2;
+      --budget: 100%;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      min-width: 320px;
+      min-height: 100svh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -10%, rgba(255, 90, 54, 0.16), transparent 35rem),
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px),
+        var(--bg);
+      background-size: auto, 32px 32px, 32px 32px, auto;
+      font-family: "Noto Sans Georgian", "DejaVu Sans", Arial, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      width: min(100%, 940px);
+      margin: 0 auto;
+      padding: max(24px, env(safe-area-inset-top)) 18px max(30px, env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 9vw, 4rem);
+      font-weight: 900;
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .intro {
+      max-width: 32rem;
+      margin: 11px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .reset {
+      flex: 0 0 auto;
+      min-width: 48px;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--text);
+      background: rgba(18, 21, 26, 0.82);
+      cursor: pointer;
+      font-size: 1.4rem;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .reset:hover { border-color: #59606c; background: var(--surface-2); }
+    .reset:active { transform: rotate(-22deg) scale(0.94); }
+
+    .workspace {
+      display: grid;
+      gap: 14px;
+    }
+
+    .triangle-card,
+    .control-panel {
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(25, 29, 36, 0.96), rgba(14, 17, 21, 0.98));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+    }
+
+    .triangle-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 360px;
+      border-radius: 28px 28px 9px 28px;
+    }
+
+    .triangle-card::before {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, rgba(255,255,255,0.04), transparent 32%);
+      content: "";
+      pointer-events: none;
+    }
+
+    .triangle-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 360px;
+      padding: 8px;
+    }
+
+    #triangle {
+      display: block;
+      width: min(100%, 410px);
+      overflow: visible;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .outer-triangle {
+      fill: rgba(255,255,255,0.012);
+      stroke: #59606b;
+      stroke-width: 1.6;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .grid-triangle {
+      fill: none;
+      stroke: #2e343d;
+      stroke-width: 1;
+      stroke-dasharray: 3 6;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .axis {
+      stroke: #373d47;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .axis-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 44;
+      cursor: pointer;
+      touch-action: none;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .value-shape {
+      fill: url(#shapeGradient);
+      stroke: rgba(255,255,255,0.82);
+      stroke-width: 2;
+      stroke-linejoin: round;
+      filter: url(#glow);
+      vector-effect: non-scaling-stroke;
+    }
+
+    .handle-hit {
+      fill: transparent;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .handle {
+      cursor: grab;
+      outline: none;
+      pointer-events: none;
+      stroke: #101217;
+      stroke-width: 4;
+      vector-effect: non-scaling-stroke;
+      transition: r 120ms ease;
+    }
+
+    .handle:hover,
+    .handle:focus-visible { r: 11; }
+    .handle:active { cursor: grabbing; }
+
+    .vertex-label {
+      fill: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 850;
+    }
+
+    .vertex-value {
+      fill: var(--muted);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .budget-center {
+      fill: var(--text);
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      paint-order: stroke;
+      stroke: #15181e;
+      stroke-width: 5px;
+      stroke-linejoin: round;
+    }
+
+    .budget-caption {
+      fill: var(--muted);
+      font-family: inherit;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      paint-order: stroke;
+      stroke: #15181e;
+      stroke-width: 4px;
+    }
+
+    .control-panel {
+      border-radius: 9px 28px 28px 28px;
+      padding: 20px;
+    }
+
+    .budget-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 9px;
+    }
+
+    .budget-title {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .budget-number {
+      font-variant-numeric: tabular-nums;
+      font-size: 1rem;
+      font-weight: 850;
+    }
+
+    .budget-track {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #292e36;
+    }
+
+    .budget-fill {
+      width: var(--budget);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--sport), var(--v8) 52%, var(--durable));
+      transition: width 130ms ease;
+    }
+
+    .status {
+      min-height: 1.4em;
+      margin: 10px 0 18px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .sliders {
+      display: grid;
+      gap: 20px;
+    }
+
+    .slider-row {
+      --accent: var(--sport);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px 16px;
+    }
+
+    .slider-row[data-trait="v8"] { --accent: var(--v8); }
+    .slider-row[data-trait="durable"] { --accent: var(--durable); }
+
+    .slider-label {
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .slider-value {
+      min-width: 3.6rem;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      font-size: 1rem;
+      font-weight: 900;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      grid-column: 1 / -1;
+      width: 100%;
+      height: 28px;
+      margin: -3px 0 0;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 7px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent) 0 var(--fill), #2c3139 var(--fill) 100%);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 7px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent) 0 var(--fill), #2c3139 var(--fill) 100%);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 26px;
+      height: 26px;
+      margin-top: -9.5px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 5px solid #111419;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.3), 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border: 5px solid #111419;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.3), 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    input[type="range"]:focus-visible { outline: none; }
+    input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--accent); }
+    input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--accent); }
+
+    .hint {
+      margin: 22px 0 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: #737a85;
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+
+    .reset:focus-visible,
+    .handle:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 3px;
+    }
+
+    @media (min-width: 760px) {
+      .app { padding-top: 46px; }
+      .topbar { align-items: center; margin-bottom: 26px; }
+      .workspace { grid-template-columns: minmax(0, 1.18fr) minmax(310px, 0.82fr); gap: 18px; }
+      .triangle-card, .triangle-wrap { min-height: 510px; }
+      .control-panel { display: flex; flex-direction: column; justify-content: center; padding: 34px; }
+    }
+
+    @media (max-width: 420px) {
+      .app { padding-inline: 12px; }
+      .triangle-card { min-height: 330px; }
+      .triangle-wrap { min-height: 330px; padding-inline: 2px; }
+      .control-panel { padding: 18px 16px; }
+      .vertex-label { font-size: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>აირჩიე ორი</h1>
+        <p class="intro">გაანაწილე 200 ქულა. სამივეს ერთად 100%-ზე ვერ დააყენებ.</p>
+      </div>
+      <button class="reset" type="button" aria-label="საწყის მდგომარეობაზე დაბრუნება" title="თავიდან">↺</button>
+    </header>
+
+    <section class="workspace" aria-label="მახასიათებლების ბალანსი">
+      <div class="triangle-card">
+        <div class="triangle-wrap">
+          <svg id="triangle" viewBox="0 0 360 330" role="img" aria-labelledby="triangle-title triangle-description">
+            <title id="triangle-title">სპორტული, V8 და გამძლე</title>
+            <desc id="triangle-description">სამკუთხა დიაგრამა სამი მოძრავი წერტილით. საერთო ლიმიტია 200 ქულა.</desc>
+            <defs>
+              <linearGradient id="shapeGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff5a36" stop-opacity="0.66"/>
+                <stop offset="0.52" stop-color="#ffd15c" stop-opacity="0.48"/>
+                <stop offset="1" stop-color="#42dfb2" stop-opacity="0.62"/>
+              </linearGradient>
+              <filter id="glow" x="-35%" y="-35%" width="170%" height="170%">
+                <feGaussianBlur stdDeviation="5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <polygon class="outer-triangle" points="180,45 47,269 313,269"/>
+            <polygon class="grid-triangle" points="180,112.2 106.9,235.4 253.2,235.4"/>
+            <polygon class="grid-triangle" points="180,157 146.8,213 213.3,213"/>
+
+            <line class="axis" x1="180" y1="194.3" x2="180" y2="45"/>
+            <line class="axis" x1="180" y1="194.3" x2="47" y2="269"/>
+            <line class="axis" x1="180" y1="194.3" x2="313" y2="269"/>
+
+            <line class="axis-hit" data-trait="sporty" x1="180" y1="194.3" x2="180" y2="45"/>
+            <line class="axis-hit" data-trait="v8" x1="180" y1="194.3" x2="47" y2="269"/>
+            <line class="axis-hit" data-trait="durable" x1="180" y1="194.3" x2="313" y2="269"/>
+
+            <polygon id="value-shape" class="value-shape" points="180,97.3 93.6,242.9 266.4,242.9"/>
+
+            <circle class="handle-hit" data-trait="sporty" aria-hidden="true" cx="180" cy="97.3" r="25"/>
+            <circle class="handle-hit" data-trait="v8" aria-hidden="true" cx="93.6" cy="242.9" r="25"/>
+            <circle class="handle-hit" data-trait="durable" aria-hidden="true" cx="266.4" cy="242.9" r="25"/>
+
+            <circle class="handle" data-trait="sporty" tabindex="0" role="slider" aria-label="სპორტული" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65" cx="180" cy="97.3" r="9" fill="#ff5a36"/>
+            <circle class="handle" data-trait="v8" tabindex="0" role="slider" aria-label="V8" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65" cx="93.6" cy="242.9" r="9" fill="#ffd15c"/>
+            <circle class="handle" data-trait="durable" tabindex="0" role="slider" aria-label="გამძლე" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65" cx="266.4" cy="242.9" r="9" fill="#42dfb2"/>
+
+            <text class="budget-center" id="chart-total" x="180" y="190" text-anchor="middle">195 / 200</text>
+            <text class="budget-caption" x="180" y="205" text-anchor="middle">ქულა</text>
+
+            <text class="vertex-label" x="180" y="20" text-anchor="middle">სპორტული</text>
+            <text class="vertex-value" id="chart-sporty" x="180" y="36" text-anchor="middle">65%</text>
+
+            <text class="vertex-label" x="26" y="297" text-anchor="start">V8</text>
+            <text class="vertex-value" id="chart-v8" x="26" y="314" text-anchor="start">65%</text>
+
+            <text class="vertex-label" x="334" y="297" text-anchor="end">გამძლე</text>
+            <text class="vertex-value" id="chart-durable" x="334" y="314" text-anchor="end">65%</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="control-panel">
+        <div class="budget-row">
+          <span class="budget-title">გამოყენებული ქულები</span>
+          <strong class="budget-number"><span id="total">195</span> / 200</strong>
+        </div>
+        <div class="budget-track" aria-hidden="true"><div class="budget-fill"></div></div>
+        <p class="status" id="status" aria-live="polite">დარჩენილია 5 ქულა.</p>
+
+        <div class="sliders">
+          <label class="slider-row" data-trait="sporty">
+            <span class="slider-label">სპორტული</span>
+            <output class="slider-value" id="sporty-output" for="sporty">65%</output>
+            <input id="sporty" type="range" min="0" max="100" value="65" aria-label="სპორტული">
+          </label>
+
+          <label class="slider-row" data-trait="v8">
+            <span class="slider-label">V8</span>
+            <output class="slider-value" id="v8-output" for="v8">65%</output>
+            <input id="v8" type="range" min="0" max="100" value="65" aria-label="V8">
+          </label>
+
+          <label class="slider-row" data-trait="durable">
+            <span class="slider-label">გამძლე</span>
+            <output class="slider-value" id="durable-output" for="durable">65%</output>
+            <input id="durable" type="range" min="0" max="100" value="65" aria-label="გამძლე">
+          </label>
+        </div>
+
+        <p class="hint">გაასრიალე სამკუთხედის წერტილები ან ქვედა ზოლები. ერთის გაზრდისას დანარჩენები ავტომატურად დაბალანსდება.</p>
+      </div>
+    </section>
+  </main>
+
+  <noscript>ამ გვერდის სამართავად JavaScript უნდა იყოს ჩართული.</noscript>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const LIMIT = 200;
+      const DEFAULTS = { sporty: 65, v8: 65, durable: 65 };
+      const traits = ["sporty", "v8", "durable"];
+      const labels = { sporty: "სპორტული", v8: "V8", durable: "გამძლე" };
+      const vertices = {
+        sporty: { x: 180, y: 45 },
+        v8: { x: 47, y: 269 },
+        durable: { x: 313, y: 269 }
+      };
+      const center = { x: 180, y: 194.333 };
+      const values = { ...DEFAULTS };
+
+      const triangle = document.querySelector("#triangle");
+      const shape = document.querySelector("#value-shape");
+      const totalNode = document.querySelector("#total");
+      const chartTotal = document.querySelector("#chart-total");
+      const status = document.querySelector("#status");
+      const handles = Object.fromEntries(traits.map((trait) => [trait, document.querySelector(`.handle[data-trait="${trait}"]`)]));
+      const handleHits = Object.fromEntries(traits.map((trait) => [trait, document.querySelector(`.handle-hit[data-trait="${trait}"]`)]));
+      const inputs = Object.fromEntries(traits.map((trait) => [trait, document.querySelector(`#${trait}`)]));
+      const outputs = Object.fromEntries(traits.map((trait) => [trait, document.querySelector(`#${trait}-output`)]));
+      const chartValues = Object.fromEntries(traits.map((trait) => [trait, document.querySelector(`#chart-${trait}`)]));
+
+      let activeTrait = null;
+      let activePointerId = null;
+      let dragBounds = null;
+      let dragFrame = 0;
+      let pendingPoint = null;
+      let rebalanced = false;
+
+      const clamp = (number, min, max) => Math.min(max, Math.max(min, number));
+      const total = () => traits.reduce((sum, trait) => sum + values[trait], 0);
+
+      function pointFor(trait) {
+        const ratio = values[trait] / 100;
+        const vertex = vertices[trait];
+        return {
+          x: center.x + (vertex.x - center.x) * ratio,
+          y: center.y + (vertex.y - center.y) * ratio
+        };
+      }
+
+      function reduceOthers(changedTrait, overflow) {
+        const others = traits.filter((trait) => trait !== changedTrait);
+        let remaining = overflow;
+
+        while (remaining > 0 && others.some((trait) => values[trait] > 0)) {
+          const available = others.reduce((sum, trait) => sum + values[trait], 0);
+          if (available === 0) break;
+
+          for (let index = 0; index < others.length && remaining > 0; index += 1) {
+            const trait = others[index];
+            if (values[trait] === 0) continue;
+            const isLastAvailable = others.slice(index + 1).every((next) => values[next] === 0);
+            const share = isLastAvailable
+              ? remaining
+              : Math.max(1, Math.round(overflow * (values[trait] / available)));
+            const reduction = Math.min(values[trait], share, remaining);
+            values[trait] -= reduction;
+            remaining -= reduction;
+          }
+        }
+      }
+
+      function setTrait(trait, requestedValue, announce = true) {
+        const next = clamp(Math.round(Number(requestedValue) || 0), 0, 100);
+        const previous = values[trait];
+        values[trait] = next;
+        const overflow = Math.max(0, total() - LIMIT);
+        rebalanced = overflow > 0 && next > previous;
+        if (overflow > 0) reduceOthers(trait, overflow);
+        render(announce);
+      }
+
+      function setAll(nextValues, announce = true) {
+        const normalized = Object.fromEntries(traits.map((trait) => [trait, clamp(Math.round(Number(nextValues[trait]) || 0), 0, 100)]));
+        const nextTotal = traits.reduce((sum, trait) => sum + normalized[trait], 0);
+        if (nextTotal > LIMIT) throw new Error("მნიშვნელობების ჯამი 200-ს არ უნდა აღემატებოდეს.");
+        traits.forEach((trait) => { values[trait] = normalized[trait]; });
+        rebalanced = false;
+        render(announce);
+      }
+
+      function render(announce = true) {
+        const currentTotal = total();
+        const remaining = LIMIT - currentTotal;
+        const points = traits.map((trait) => {
+          const point = pointFor(trait);
+          handles[trait].setAttribute("cx", point.x.toFixed(2));
+          handles[trait].setAttribute("cy", point.y.toFixed(2));
+          handleHits[trait].setAttribute("cx", point.x.toFixed(2));
+          handleHits[trait].setAttribute("cy", point.y.toFixed(2));
+          handles[trait].setAttribute("aria-valuenow", values[trait]);
+          handles[trait].setAttribute("aria-valuetext", `${labels[trait]} ${values[trait]} პროცენტი`);
+          inputs[trait].value = values[trait];
+          inputs[trait].style.setProperty("--fill", `${values[trait]}%`);
+          outputs[trait].value = `${values[trait]}%`;
+          outputs[trait].textContent = `${values[trait]}%`;
+          chartValues[trait].textContent = `${values[trait]}%`;
+          return `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
+        });
+
+        shape.setAttribute("points", points.join(" "));
+        totalNode.textContent = currentTotal;
+        chartTotal.textContent = `${currentTotal} / ${LIMIT}`;
+        document.documentElement.style.setProperty("--budget", `${(currentTotal / LIMIT) * 100}%`);
+
+        if (announce) {
+          status.textContent = rebalanced
+            ? "ლიმიტის შესანარჩუნებლად სხვა მაჩვენებლები შემცირდა."
+            : remaining === 0
+              ? "ყველა 200 ქულა გამოყენებულია."
+              : `დარჩენილია ${remaining} ქულა.`;
+        }
+      }
+
+      function valueFromPointer(trait, clientX, clientY) {
+        const bounds = dragBounds || triangle.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) return values[trait];
+        const point = {
+          x: (clientX - bounds.left) * (360 / bounds.width),
+          y: (clientY - bounds.top) * (330 / bounds.height)
+        };
+        const vertex = vertices[trait];
+        const axisX = vertex.x - center.x;
+        const axisY = vertex.y - center.y;
+        const projection = ((point.x - center.x) * axisX + (point.y - center.y) * axisY) / (axisX * axisX + axisY * axisY);
+        return clamp(Math.round(projection * 100), 0, 100);
+      }
+
+      function beginDrag(trait, event) {
+        if (activePointerId !== null) return;
+        activeTrait = trait;
+        activePointerId = event.pointerId;
+        dragBounds = triangle.getBoundingClientRect();
+        event.preventDefault();
+        triangle.setPointerCapture?.(event.pointerId);
+        setTrait(trait, valueFromPointer(trait, event.clientX, event.clientY), false);
+      }
+
+      triangle.querySelectorAll(".handle-hit, .axis-hit").forEach((target) => {
+        target.addEventListener("pointerdown", (event) => beginDrag(target.dataset.trait, event));
+      });
+
+      triangle.addEventListener("pointermove", (event) => {
+        if (!activeTrait || event.pointerId !== activePointerId) return;
+        event.preventDefault();
+        const coalesced = event.getCoalescedEvents?.();
+        const latest = coalesced?.length ? coalesced[coalesced.length - 1] : event;
+        pendingPoint = { x: latest.clientX, y: latest.clientY };
+        if (dragFrame) return;
+        dragFrame = requestAnimationFrame(() => {
+          dragFrame = 0;
+          if (!activeTrait || !pendingPoint) return;
+          const point = pendingPoint;
+          pendingPoint = null;
+          setTrait(activeTrait, valueFromPointer(activeTrait, point.x, point.y), false);
+        });
+      }, { passive: false });
+
+      function finishDrag(event, announce) {
+        if (!activeTrait || event.pointerId !== activePointerId) return;
+        if (dragFrame) cancelAnimationFrame(dragFrame);
+        dragFrame = 0;
+        pendingPoint = null;
+        if (announce) {
+          setTrait(activeTrait, valueFromPointer(activeTrait, event.clientX, event.clientY), true);
+        }
+        if (triangle.hasPointerCapture?.(activePointerId)) {
+          triangle.releasePointerCapture(activePointerId);
+        }
+        activeTrait = null;
+        activePointerId = null;
+        dragBounds = null;
+      }
+
+      triangle.addEventListener("pointerup", (event) => finishDrag(event, true));
+      triangle.addEventListener("pointercancel", (event) => finishDrag(event, false));
+      triangle.addEventListener("lostpointercapture", (event) => {
+        if (event.pointerId !== activePointerId) return;
+        activeTrait = null;
+        activePointerId = null;
+        dragBounds = null;
+        pendingPoint = null;
+        if (dragFrame) cancelAnimationFrame(dragFrame);
+        dragFrame = 0;
+      });
+
+      Object.entries(inputs).forEach(([trait, input]) => {
+        input.addEventListener("input", () => setTrait(trait, input.value));
+      });
+
+      Object.entries(handles).forEach(([trait, handle]) => {
+        handle.addEventListener("keydown", (event) => {
+          const step = event.shiftKey ? 10 : 1;
+          if (["ArrowUp", "ArrowRight"].includes(event.key)) {
+            event.preventDefault();
+            setTrait(trait, values[trait] + step);
+          }
+          if (["ArrowDown", "ArrowLeft"].includes(event.key)) {
+            event.preventDefault();
+            setTrait(trait, values[trait] - step);
+          }
+          if (event.key === "Home") {
+            event.preventDefault();
+            setTrait(trait, 0);
+          }
+          if (event.key === "End") {
+            event.preventDefault();
+            setTrait(trait, 100);
+          }
+        });
+      });
+
+      document.querySelector(".reset").addEventListener("click", () => setAll(DEFAULTS));
+
+      function registerWebMcpTools() {
+        const context = document.modelContext;
+        if (!context?.registerTool) return;
+
+        const registration = (tool) => {
+          try { Promise.resolve(context.registerTool(tool)).catch(() => {}); } catch (_) {}
+        };
+
+        registration({
+          name: "get_vehicle_traits",
+          title: "Get vehicle traits",
+          description: "Read the currently selected sporty, V8, and durable percentages and the remaining points.",
+          inputSchema: { type: "object", properties: {}, additionalProperties: false },
+          annotations: { readOnlyHint: true, untrustedContentHint: false },
+          execute() {
+            return { ...values, total: total(), remaining: LIMIT - total() };
+          }
+        });
+
+        registration({
+          name: "set_vehicle_traits",
+          title: "Set vehicle traits",
+          description: "Set all three vehicle-trait percentages. Each value must be 0–100 and their sum cannot exceed 200.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              sporty: { type: "integer", minimum: 0, maximum: 100 },
+              v8: { type: "integer", minimum: 0, maximum: 100 },
+              durable: { type: "integer", minimum: 0, maximum: 100 }
+            },
+            required: ["sporty", "v8", "durable"],
+            additionalProperties: false
+          },
+          annotations: { readOnlyHint: false, untrustedContentHint: false },
+          execute(input) {
+            if (!input || traits.some((trait) => !Number.isInteger(input[trait]) || input[trait] < 0 || input[trait] > 100)) {
+              throw new Error("Each trait must be an integer from 0 to 100.");
+            }
+            setAll(input);
+            return { ...values, total: total(), remaining: LIMIT - total() };
+          }
+        });
+
+        registration({
+          name: "reset_vehicle_traits",
+          title: "Reset vehicle traits",
+          description: "Return the vehicle-trait triangle to its balanced starting state.",
+          inputSchema: { type: "object", properties: {}, additionalProperties: false },
+          annotations: { readOnlyHint: false, untrustedContentHint: false },
+          execute() {
+            setAll(DEFAULTS);
+            return { ...values, total: total(), remaining: LIMIT - total() };
+          }
+        });
+      }
+
+      render(false);
+      registerWebMcpTools();
+    })();
+  </script>
+</body>
+</html>
